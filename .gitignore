@@ -53,3 +53,5 @@ Icon
 icon.iconset/
 *.icns
 distribution/ 
+# Built app (build from source with ./build_macos_app.sh)
+dist/

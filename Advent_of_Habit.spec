@@ -59,5 +59,6 @@ app = BUNDLE(
         'CFBundleVersion': '1.0.0',
         'NSHighResolutionCapable': True,
         'NSSupportsAutomaticGraphicsSwitching': True,
+        'LSUIElement': True,
     }
 ) 

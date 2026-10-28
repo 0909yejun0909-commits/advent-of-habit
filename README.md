@@ -1,133 +1,64 @@
 # Advent of Habit
 
-A minimalist habit tracker that helps you build and maintain daily habits. It automatically appears during your chosen time window (morning or evening) and stays on top of other windows until you've checked off your habits for the day.
+A minimal habit tracker that lives on your macOS desktop and looks like a native widget, without needing Xcode.
+
+<p>
+  <img src="images/widget.png" width="342" alt="Habit widget">
+</p>
+
+Click the widget to open your history:
+
+<img src="images/history.png" width="780" alt="History window with month calendar and charts">
+
+> Fork of [Alestainer/advent-of-habit](https://github.com/Alestainer/advent-of-habit), restyled as a desktop widget with unlimited habits and a history view.
 
 ## Features
 
-- 🎯 Track up to 3 daily habits
-- ⏰ Choose your preferred check-in time (morning 6-11 AM or evening 6-11 PM)
-- 📊 Shows completion ratio for the last 21 days (e.g., "15/21" means completed 15 out of the last 21 days)
-- 📅 Calendar view to visualize your progress
-- 🔝 Stays on top of other windows until minimized
-- 🔄 Minimizes to a green checkmark in your menu bar for easy access
-- 💾 Automatically saves your progress
-- 🎨 Clean, modern interface
+- 🖥️ **Desktop widget.** Sits on the desktop behind your windows, on every Space, sized and colored to match the native macOS widgets (medium, or large once you have more than 3 habits)
+- ➕ **Any number of habits.** Add with **+**, remove by right-clicking a habit
+- ⚪ **Tick off today.** Each habit shows a 7-day dot strip and how many of the last 21 days you did it
+- 📅 **History.** Click the widget for a month calendar shaded by how much you got done, 30-day completion rate and streaks per habit, and a daily bar chart. Click a habit to filter.
+- ⏰ **Check-in reminder.** During your chosen window (morning 6–11 AM or evening 6–11 PM), if you haven't logged anything yet, the widget floats above your windows until you tick something or click **hide**
+- ✓ **Menu bar icon** with Show History, Add Habit, Allow Moving Widget, and Quit
+- 🌙 Rolls over to a new day at midnight, and saves everything locally
 
-## Installation
+## Install
 
-### Option 1: Run from Repository (Recommended)
-1. Clone or download this repository
-2. Navigate to the `dist` folder
-3. Double-click `Advent of Habit.app`
-4. Optional: Move to Applications folder and add to Login Items
+Requires macOS 10.15+ and Python 3.9+.
 
-### Option 2: Build from Source
-1. Ensure you have Python 3.8+ installed
-2. Clone this repository:
 ```bash
-git clone https://github.com/alestainer/advent-of-habit.git
+git clone https://github.com/0909yejun0909-commits/advent-of-habit.git
 cd advent-of-habit
-```
-
-3. Create and activate a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On macOS/Linux
-```
-
-4. Install dependencies:
-```bash
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
-```
-
-5. Build the app:
-```bash
-chmod +x build_macos_app.sh
 ./build_macos_app.sh
+cp -R "dist/Advent of Habit.app" /Applications/
+open "/Applications/Advent of Habit.app"
 ```
 
-The app will be created at `dist/Advent of Habit.app`. You can then:
-- Run it directly from the `dist` folder
-- Move it to your Applications folder
-- Add it to Login Items for automatic startup
+To run without building, use `python launch_habit_tracker.py`.
+
+To start it automatically, add it in **System Settings → General → Login Items**.
 
 ## Usage
 
-### First Launch
-1. When you first launch the app, you'll see a welcome screen
-2. Enter up to 3 habits you want to track
-3. Default suggestions are provided (Meditation, Journaling, Exercise)
-4. Choose your preferred check-in time:
-   - Morning (6-11 AM)
-   - Evening (6-11 PM)
-5. Click "Start Tracking" to begin
+1. On first launch, enter your habits and pick a reminder time
+2. Drag the widget where you want it (e.g. lined up under your other widgets), then uncheck **Allow Moving Widget** in the menu bar menu to lock it
+3. Tick habits as you do them. Click anywhere else on the widget to see your history
 
-### Daily Usage
-1. The app appears automatically during your chosen time window
-2. Check off habits as you complete them
-3. Click ✕ to minimize to menu bar
-4. Click the green checkmark in the menu bar to show the window again
-5. Progress is saved automatically
+## Data
 
-### Calendar View
-- Switch to the "Calendar" tab to see your progress over time
-- Select a habit to view its completion history
-- Green dates indicate completed habits
-- Red dates indicate missed habits
+Everything is stored locally, nothing leaves your Mac:
 
-### Understanding the Numbers
-- Each habit shows a ratio like "7/21"
-- First number: Days completed in the last 21 days
-- Second number: Total days tracked
-- This helps you see your consistency over time
-
-### Menu Bar Options
-- Click the green checkmark icon to show the window
-- Right-click for additional options:
-  - Show Window
-  - Quit
-
-## Data Storage
-
-Your data is stored locally at:
 ```
 ~/Library/Application Support/Advent of Habit/
-├── config.json         # Your habit settings and time preference
-└── habit_data.json    # Your daily progress
+├── config.json       # habits, reminder time, widget position
+└── habit_data.json   # {"YYYY-MM-DD": {"habit": true/false}}
 ```
 
-## System Requirements
-
-- macOS 10.15 (Catalina) or newer
-- Apple Silicon (M1/M2/M3) or Intel Mac
-
-## Contributing
-
-Contributions are welcome! Here's how you can help:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## Troubleshooting
-
-### App Won't Start
-1. Open Terminal
-2. Run: `rm -rf ~/Library/Application\ Support/Advent\ of\ Habit`
-3. Try launching the app again
-
-### Reset All Data
-1. Delete the app from Applications
-2. Run: `rm -rf ~/Library/Application\ Support/Advent\ of\ Habit`
-3. Reinstall the app
+To reset, quit the app and delete that folder.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details
-
-## Acknowledgments
-
-- Built with PyQt6
-- Icons and styling inspired by macOS design guidelines
-- Special thanks to the open source community 
+MIT, see [LICENSE](LICENSE).
