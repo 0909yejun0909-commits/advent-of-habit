@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+import sys
 
 block_cipher = None
 
@@ -32,7 +33,7 @@ exe = EXE(
     upx=True,
     console=False,
     disable_windowed_traceback=False,
-    argv_emulation=True,
+    argv_emulation=sys.platform == 'darwin',
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
@@ -49,16 +50,17 @@ coll = COLLECT(
     name='Advent of Habit',
 )
 
-app = BUNDLE(
-    coll,
-    name='Advent of Habit.app',
-    bundle_identifier='com.adventofhabit.tracker',
-    info_plist={
-        'LSMinimumSystemVersion': '10.15',
-        'CFBundleShortVersionString': '1.0.0',
-        'CFBundleVersion': '1.0.0',
-        'NSHighResolutionCapable': True,
-        'NSSupportsAutomaticGraphicsSwitching': True,
-        'LSUIElement': True,
-    }
-) 
+if sys.platform == 'darwin':
+    app = BUNDLE(
+        coll,
+        name='Advent of Habit.app',
+        bundle_identifier='com.adventofhabit.tracker',
+        info_plist={
+            'LSMinimumSystemVersion': '10.15',
+            'CFBundleShortVersionString': '1.0.0',
+            'CFBundleVersion': '1.0.0',
+            'NSHighResolutionCapable': True,
+            'NSSupportsAutomaticGraphicsSwitching': True,
+            'LSUIElement': True,
+        }
+    ) 

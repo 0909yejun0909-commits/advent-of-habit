@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import sys
 import json
 import calendar
@@ -23,6 +24,17 @@ try:
 except ImportError:
     HAS_APPKIT = False
 
+IS_MAC = sys.platform == "darwin"
+FONT = ".AppleSystemUIFont" if IS_MAC else "Segoe UI"
+
+
+def dataDir() -> Path:
+    if IS_MAC:
+        return Path.home() / "Library/Application Support/Advent of Habit"
+    if sys.platform == "win32":
+        return Path(os.environ.get("APPDATA", Path.home())) / "Advent of Habit"
+    return Path.home() / ".local/share/advent-of-habit"
+
 
 # Sampled from the native macOS desktop widgets
 WIDGET_BG = "#414141"
@@ -42,7 +54,7 @@ DEFAULT_POSITION = [54, 54]  # top-left, where macOS places the first desktop wi
 STYLE = f"""
     QWidget {{
         color: {TEXT};
-        font-family: ".AppleSystemUIFont";
+        font-family: "{FONT}";
         font-size: 13px;
     }}
     QDialog, #history {{
@@ -335,14 +347,14 @@ class MonthCalendar(QWidget):
                    (self.height() - head - len(weeks) * gap) / len(weeks))
         x0 = (self.width() - (7 * cell + 6 * gap)) / 2
 
-        font = QFont(".AppleSystemUIFont", 10)
+        font = QFont(FONT, 10)
         font.setBold(True)
         painter.setFont(font)
         painter.setPen(QColor(MUTED))
         for i, name in enumerate("SMTWTFS"):
             painter.drawText(QRectF(x0 + i * (cell + gap), 0, cell, head), Qt.AlignmentFlag.AlignCenter, name)
 
-        painter.setFont(QFont(".AppleSystemUIFont", 11))
+        painter.setFont(QFont(FONT, 11))
         for r, week in enumerate(weeks):
             for c, d in enumerate(week):
                 if d.month != self.month:
@@ -404,10 +416,10 @@ class DailyBars(QWidget):
                 painter.setBrush(QColor(FAINT if f is None else "#7a7a7a"))
             painter.drawRoundedRect(QRectF(x, chart_h - h, bar_w, h), 2, 2)
 
-        painter.setFont(QFont(".AppleSystemUIFont", 10))
+        painter.setFont(QFont(FONT, 10))
         painter.setPen(QColor(MUTED))
         start = today - timedelta(days=self.DAYS - 1)
-        painter.drawText(QRectF(0, chart_h + 4, 100, label_h), Qt.AlignmentFlag.AlignLeft, start.strftime("%b %-d"))
+        painter.drawText(QRectF(0, chart_h + 4, 100, label_h), Qt.AlignmentFlag.AlignLeft, f"{start:%b} {start.day}")
         painter.drawText(QRectF(self.width() - 100, chart_h + 4, 100, label_h), Qt.AlignmentFlag.AlignRight, "Today")
         painter.end()
 
@@ -600,7 +612,7 @@ class HabitWidget(QWidget):
     def __init__(self) -> None:
         super().__init__()
 
-        app_support = Path.home() / "Library/Application Support/Advent of Habit"
+        app_support = dataDir()
         app_support.mkdir(parents=True, exist_ok=True)
         self.data_file = app_support / "habit_data.json"
         self.config_file = app_support / "config.json"
@@ -669,7 +681,10 @@ class HabitWidget(QWidget):
 
     def initUI(self) -> None:
         self.setWindowTitle("Advent of Habit")
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        flags = Qt.WindowType.FramelessWindowHint
+        if not IS_MAC:
+            flags |= Qt.WindowType.Tool  # keep it off the taskbar
+        self.setWindowFlags(flags)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         outer = QVBoxLayout(self)
@@ -808,6 +823,7 @@ class HabitWidget(QWidget):
         self.history.setData(self.habits, self.readData())
         self.history.show()
         self.history.raise_()
+        self.history.activateWindow()
         self.activateApp()
 
     # --- Window level: pinned to the desktop, or floating while it wants attention ---
@@ -825,9 +841,14 @@ class HabitWidget(QWidget):
         self.move(*self.position)
         nswin = self.nsWindow()
         if nswin is None:
+            # Windows/Linux: Qt's stay-on-bottom/top hints (changing flags hides the window)
             self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, self.front)
             self.setWindowFlag(Qt.WindowType.WindowStaysOnBottomHint, not self.front)
             self.show()
+            self.move(*self.position)
+            if self.front:
+                self.raise_()
+                self.activateWindow()
             return
         if self.front:
             nswin.setLevel_(NSFloatingWindowLevel)
@@ -907,13 +928,18 @@ class HabitWidget(QWidget):
     def setupTrayIcon(self) -> None:
         self.tray_icon = QSystemTrayIcon(self)
 
-        # Monochrome checkmark; as a mask it follows the menu bar's light/dark tint
+        # Monochrome checkmark. On macOS it's a mask that follows the menu bar's
+        # light/dark tint; elsewhere it sits on a dark tile so any taskbar shows it
         pixmap = QPixmap(36, 36)
         pixmap.setDevicePixelRatio(2)
         pixmap.fill(Qt.GlobalColor.transparent)
         painter = QPainter(pixmap)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        pen = QPen(Qt.GlobalColor.black, 2)
+        if not IS_MAC:
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(WIDGET_BG))
+            painter.drawRoundedRect(QRectF(0, 0, 18, 18), 4, 4)
+        pen = QPen(Qt.GlobalColor.black if IS_MAC else QColor(TEXT), 2)
         pen.setCapStyle(Qt.PenCapStyle.RoundCap)
         pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
         painter.setPen(pen)
@@ -921,7 +947,7 @@ class HabitWidget(QWidget):
         painter.drawLine(7, 12, 14, 5)
         painter.end()
         icon = QIcon(pixmap)
-        icon.setIsMask(True)
+        icon.setIsMask(IS_MAC)
 
         self.tray_icon.setIcon(icon)
         self.tray_icon.setToolTip("Advent of Habit")
@@ -949,7 +975,14 @@ class HabitWidget(QWidget):
         tray_menu.addAction(quit_action)
 
         self.tray_icon.setContextMenu(tray_menu)
+        if not IS_MAC:
+            # On Windows a left click doesn't open the menu, so make it open History
+            self.tray_icon.activated.connect(self.trayIconActivated)
         self.tray_icon.show()
+
+    def trayIconActivated(self, reason: QSystemTrayIcon.ActivationReason) -> None:
+        if reason == QSystemTrayIcon.ActivationReason.Trigger:
+            self.openHistory()
 
     # --- Data ---
 

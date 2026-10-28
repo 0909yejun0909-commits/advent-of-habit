@@ -1,0 +1,32 @@
+name: Windows build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Smoke test
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: python tests/smoke_test.py screenshots
+      - run: pyinstaller Advent_of_Habit.spec --noconfirm
+      - name: Zip app
+        shell: pwsh
+        run: Compress-Archive -Path "dist/Advent of Habit" -DestinationPath Advent-of-Habit-Windows-x64.zip
+      - uses: actions/upload-artifact@v5
+        with:
+          name: Advent-of-Habit-Windows-x64
+          path: Advent-of-Habit-Windows-x64.zip
+      - uses: actions/upload-artifact@v5
+        with:
+          name: screenshots
+          path: screenshots
