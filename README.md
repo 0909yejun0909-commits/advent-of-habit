@@ -22,7 +22,11 @@ Click the widget to open your history:
 - ✓ **Menu bar icon** with Show History, Add Habit, Allow Moving Widget, and Quit
 - 🌙 Rolls over to a new day at midnight, and saves everything locally
 
-## Install
+## Download
+
+Grab **Advent-of-Habit-macOS-arm64.zip** from the [latest release](https://github.com/0909yejun0909-commits/advent-of-habit/releases/latest) (Apple Silicon). Unzip it, move the app to Applications, and open it. The app isn't notarized, so the first time macOS will block it. Go to **System Settings → Privacy & Security → Open Anyway**.
+
+## Build from source
 
 Requires macOS 10.15+ and Python 3.9+.
 
