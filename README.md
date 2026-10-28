@@ -3,7 +3,7 @@
 A minimal habit tracker that lives on your macOS desktop and looks like a native widget, without needing Xcode.
 
 <p>
-  <img src="images/widget.png" width="342" alt="Habit widget">
+  <img src="images/widget.png" width="352" alt="Habit widget">
 </p>
 
 Click the widget to open your history:
