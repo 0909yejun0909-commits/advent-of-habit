@@ -9,7 +9,7 @@ from typing import Dict, List, Optional, Tuple
 from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                            QCheckBox, QPushButton, QLabel, QSystemTrayIcon, QMenu,
                            QLineEdit, QDialog, QRadioButton, QFrame, QInputDialog,
-                           QScrollArea, QSizePolicy)
+                           QScrollArea, QSizePolicy, QMessageBox)
 from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, pyqtSignal
 from PyQt6.QtGui import QIcon, QAction, QColor, QPixmap, QPainter, QPen, QFont
 
@@ -822,11 +822,37 @@ class HabitWidget(QWidget):
 
     def showHabitMenu(self, habit: str, pos) -> None:
         menu = QMenu()
+        rename_action = menu.addAction("Rename…")
         remove_action = menu.addAction(f"Remove “{habit}”")
-        if menu.exec(pos) == remove_action:
+        chosen = menu.exec(pos)
+        if chosen == rename_action:
+            self.promptRenameHabit(habit)
+        elif chosen == remove_action:
             self.habits.remove(habit)
             self.saveConfig()
             self.rebuildHabits()
+
+    def promptRenameHabit(self, habit: str) -> None:
+        self.activateApp()
+        name, ok = QInputDialog.getText(None, "Rename habit", "Habit", text=habit)
+        name = name.strip()
+        if not ok or not name or name == habit:
+            return
+        if name in self.habits:
+            QMessageBox.information(None, "Rename habit", f"You already have a habit called “{name}”.")
+            return
+        self.renameHabit(habit, name)
+
+    def renameHabit(self, old: str, new: str) -> None:
+        # Carry the history over so streaks and the calendar survive the rename
+        data = self.readData()
+        for entry in data.values():
+            if old in entry:
+                entry[new] = entry.pop(old)
+        self.writeData(data)
+        self.habits[self.habits.index(old)] = new
+        self.saveConfig()
+        self.rebuildHabits()
 
     def promptAddHabit(self) -> None:
         self.activateApp()
@@ -1053,9 +1079,12 @@ class HabitWidget(QWidget):
             habit: checkbox.isChecked()
             for habit, checkbox in self.checkboxes.items()
         }
+        self.writeData(data)
+        self.refreshStats(data)
+
+    def writeData(self, data: Dict[str, Dict[str, bool]]) -> None:
         with open(self.data_file, 'w') as f:
             json.dump(data, f, indent=2)
-        self.refreshStats(data)
 
     def closeEvent(self, event) -> None:
         event.ignore()

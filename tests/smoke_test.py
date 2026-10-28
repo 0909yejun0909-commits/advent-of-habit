@@ -78,4 +78,17 @@ widget.history.select("Gym")
 settle()
 widget.history.grab().save(str(out / "history.png"))
 
+# Renaming keeps the habit's position and moves its history to the new name
+before = json.loads((data_dir / "habit_data.json").read_text())
+read_days = sum("Read" in entry for entry in before.values())
+widget.renameHabit("Read", "Read 20 pages")
+after = json.loads((data_dir / "habit_data.json").read_text())
+config = json.loads((data_dir / "config.json").read_text())
+assert config["habits"] == ["Meditate", "Gym", "Read 20 pages", "Sleep by 12"], config["habits"]
+assert not any("Read" in entry for entry in after.values()), "old name left in history"
+assert sum("Read 20 pages" in entry for entry in after.values()) == read_days
+assert after[today.isoformat()]["Gym"] is True, "rename clobbered other habits"
+assert "Read 20 pages" in widget.checkboxes and "Read" not in widget.checkboxes
+assert [r.findChildren(h.QLabel)[0].text() for r in widget.history.findChildren(h.StatRow)][3] == "Read 20 pages"
+
 print(f"smoke test passed on {sys.platform}; screenshots in {out}")
