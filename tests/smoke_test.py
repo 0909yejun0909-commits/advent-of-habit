@@ -38,7 +38,7 @@ history = {
 (data_dir / "habit_data.json").write_text(json.dumps(history))
 
 app = QApplication(sys.argv)
-app.setStyleSheet(h.STYLE)
+h.configureApp(app)
 widget = h.HabitWidget()
 widget.show()
 if not h.HAS_APPKIT:

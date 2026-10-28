@@ -9,7 +9,7 @@ from typing import Dict, List, Optional, Tuple
 from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                            QCheckBox, QPushButton, QLabel, QSystemTrayIcon, QMenu,
                            QLineEdit, QDialog, QRadioButton, QFrame, QInputDialog,
-                           QScrollArea)
+                           QScrollArea, QSizePolicy)
 from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, pyqtSignal
 from PyQt6.QtGui import QIcon, QAction, QColor, QPixmap, QPainter, QPen, QFont
 
@@ -452,6 +452,8 @@ class StatRow(QFrame):
     def __init__(self, name: str, rate: float, detail: str, selected: bool, parent=None):
         super().__init__(parent)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
+        # Keep full height and let the list scroll, rather than squashing the text
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         self.setStyleSheet(f"StatRow {{ border-radius: 8px; background-color: {'#4f4f4f' if selected else 'transparent'}; }}")
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 8, 10, 8)
@@ -1043,10 +1045,16 @@ class HabitWidget(QWidget):
         event.ignore()
 
 
+def configureApp(app: QApplication) -> None:
+    if not IS_MAC:
+        app.setStyle("Fusion")  # the native Windows style recolors parts of labels
+    app.setStyleSheet(STYLE)
+
+
 def main() -> None:
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
-    app.setStyleSheet(STYLE)
+    configureApp(app)
     window = HabitWidget()
     window.show()
     QTimer.singleShot(0, window.applyLevel)
