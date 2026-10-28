@@ -39,6 +39,15 @@ history = {
 
 app = QApplication(sys.argv)
 h.configureApp(app)
+
+
+def settle() -> None:
+    # Let rebuilt widgets polish and lay out before screenshots
+    for _ in range(5):
+        app.sendPostedEvents()
+        app.processEvents()
+
+
 widget = h.HabitWidget()
 widget.show()
 if not h.HAS_APPKIT:
@@ -46,7 +55,7 @@ if not h.HAS_APPKIT:
     widget.applyLevel()
     widget.bringToFront()
     widget.sendToDesktop()
-app.processEvents()
+settle()
 
 assert widget.size().width() == h.WIDGET_WIDTH, widget.size()
 assert widget.size().height() == h.LARGE_HEIGHT, widget.size()  # 4 habits -> large
@@ -66,7 +75,7 @@ widget.openHistory()
 widget.history.shiftMonth(-1)
 widget.history.shiftMonth(1)
 widget.history.select("Gym")
-app.processEvents()
+settle()
 widget.history.grab().save(str(out / "history.png"))
 
 print(f"smoke test passed on {sys.platform}; screenshots in {out}")

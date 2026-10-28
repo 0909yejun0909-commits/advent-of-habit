@@ -166,6 +166,22 @@ STYLE = f"""
         background-color: transparent;
         border: none;
     }}
+    QScrollBar:vertical {{
+        background-color: transparent;
+        width: 6px;
+        margin: 0;
+    }}
+    QScrollBar::handle:vertical {{
+        background-color: #5f5f5f;
+        border-radius: 3px;
+        min-height: 24px;
+    }}
+    QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+        height: 0;
+    }}
+    QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+        background-color: transparent;
+    }}
     QMenu {{
         background-color: #2e2e2e;
         border: 1px solid {DIVIDER};
@@ -1046,8 +1062,6 @@ class HabitWidget(QWidget):
 
 
 def configureApp(app: QApplication) -> None:
-    if not IS_MAC:
-        app.setStyle("Fusion")  # the native Windows style recolors parts of labels
     app.setStyleSheet(STYLE)
 
 
