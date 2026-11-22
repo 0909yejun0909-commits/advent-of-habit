@@ -78,6 +78,21 @@ widget.history.select("Gym")
 settle()
 widget.history.grab().save(str(out / "history.png"))
 
+# Yesterday can be ticked off without touching today
+yesterday = (today - timedelta(days=1)).isoformat()
+widget.showYesterday(True)
+assert widget.heading.text() == "YESTERDAY"
+assert widget.checkboxes["Gym"].isChecked() == history[yesterday]["Gym"], "didn't load yesterday"
+widget.checkboxes["Meditate"].setChecked(not history[yesterday]["Meditate"])
+saved = json.loads((data_dir / "habit_data.json").read_text())
+assert saved[yesterday]["Meditate"] == (not history[yesterday]["Meditate"]), saved[yesterday]
+assert saved[today.isoformat()] == {"Meditate": False, "Gym": True, "Read": False, "Sleep by 12": False}, \
+    saved[today.isoformat()]
+settle()
+widget.grab().save(str(out / "widget_yesterday.png"))
+widget.showYesterday(False)
+assert widget.heading.text() == "HABITS" and widget.checkboxes["Gym"].isChecked()
+
 # Renaming keeps the habit's position and moves its history to the new name
 before = json.loads((data_dir / "habit_data.json").read_text())
 read_days = sum("Read" in entry for entry in before.values())

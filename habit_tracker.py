@@ -643,6 +643,7 @@ class HabitWidget(QWidget):
             self.loadConfig()
 
         self.today = self.todayStr()
+        self.showing_yesterday = False  # the widget can log yesterday too, nothing older
         self.front = False          # True while floating above other windows
         self.hidden_on: Optional[str] = None  # day the check-in reminder was dismissed
         self.press_pos = None
@@ -717,9 +718,9 @@ class HabitWidget(QWidget):
 
         header = QHBoxLayout()
         header.setSpacing(8)
-        heading = QLabel("HABITS")
-        heading.setObjectName("heading")
-        header.addWidget(heading)
+        self.heading = QLabel("HABITS")
+        self.heading.setObjectName("heading")
+        header.addWidget(self.heading)
         self.summary_label = QLabel()
         self.summary_label.setObjectName("summary")
         header.addWidget(self.summary_label)
@@ -731,6 +732,19 @@ class HabitWidget(QWidget):
         self.hide_button.clicked.connect(self.dismiss)
         self.hide_button.hide()
         header.addWidget(self.hide_button)
+
+        self.day_button = QPushButton("yesterday")
+        self.day_button.setObjectName("hide")
+        self.day_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.day_button.setToolTip("Tick off habits you did yesterday")
+        self.day_button.clicked.connect(lambda: self.showYesterday(not self.showing_yesterday))
+        header.addWidget(self.day_button)
+
+        # Drop back to today on its own, so later ticks don't land on yesterday by accident
+        self.yesterday_timer = QTimer(self)
+        self.yesterday_timer.setSingleShot(True)
+        self.yesterday_timer.setInterval(2 * 60 * 1000)
+        self.yesterday_timer.timeout.connect(lambda: self.showYesterday(False))
 
         add_button = QPushButton("+")
         add_button.setObjectName("add")
@@ -927,8 +941,23 @@ class HabitWidget(QWidget):
     def tick(self) -> None:
         if self.todayStr() != self.today:
             self.today = self.todayStr()
-            self.loadData()
+            self.showYesterday(False)
         self.checkCheckIn()
+
+    def viewedDay(self) -> str:
+        if self.showing_yesterday:
+            return dateStr(datetime.strptime(self.today, "%Y-%m-%d").date() - timedelta(days=1))
+        return self.today
+
+    def showYesterday(self, on: bool) -> None:
+        self.showing_yesterday = on
+        self.heading.setText("YESTERDAY" if on else "HABITS")
+        self.day_button.setText("today" if on else "yesterday")
+        if on:
+            self.yesterday_timer.start()
+        else:
+            self.yesterday_timer.stop()
+        self.loadData()
 
     def checkCheckIn(self) -> None:
         # Float above other windows during the check-in window until something
@@ -1065,17 +1094,19 @@ class HabitWidget(QWidget):
 
     def loadData(self) -> None:
         data = self.readData()
-        today_entry = data.get(self.today, {})
+        entry = data.get(self.viewedDay(), {})
         for habit, checkbox in self.checkboxes.items():
             # Don't let restoring state count as checking in
             checkbox.blockSignals(True)
-            checkbox.setChecked(today_entry.get(habit, False))
+            checkbox.setChecked(entry.get(habit, False))
             checkbox.blockSignals(False)
         self.refreshStats(data)
 
     def saveData(self) -> None:
         data = self.readData()
-        data[self.today] = {
+        if self.showing_yesterday:
+            self.yesterday_timer.start()  # still busy back-filling, restart the countdown
+        data[self.viewedDay()] = {
             habit: checkbox.isChecked()
             for habit, checkbox in self.checkboxes.items()
         }

@@ -16,7 +16,7 @@ Click the widget to open your history:
 
 - 🖥️ **Desktop widget.** Sits on the desktop behind your windows, on every Space, sized and colored to match the native macOS widgets (medium, or large once you have more than 3 habits)
 - ➕ **Any number of habits.** Add with **+**, right-click a habit to rename or remove it (renaming keeps its history)
-- ⚪ **Tick off today.** Each habit shows a 7-day dot strip and how many of the last 21 days you did it
+- ⚪ **Tick off today, or yesterday.** Forgot to log last night? Click **yesterday** in the widget to back-fill it (it returns to today after 2 minutes). Each habit shows a 7-day dot strip and how many of the last 21 days you did it
 - 📅 **History.** Click the widget for a month calendar shaded by how much you got done, 30-day completion rate and streaks per habit, and a daily bar chart. Click a habit to filter.
 - ⏰ **Check-in reminder.** During your chosen window (morning 6–11 AM or evening 6–11 PM), if you haven't logged anything yet, the widget floats above your windows until you tick something or click **hide**
 - ✓ **Menu bar / tray icon** with Show History, Add Habit, Allow Moving Widget, and Quit
